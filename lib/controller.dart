@@ -12,7 +12,7 @@ class Controller extends ChangeNotifier {
     notifyListeners();
   }
 
-  void time_decrement() {
+  void timeDecrement() {
     while (timer > 0) {
       sleep(Duration(seconds: 1));
       timer--;
