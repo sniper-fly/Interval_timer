@@ -40,12 +40,7 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: ListView.builder(
-        itemCount: 1,
-        itemBuilder: (context, index) {
-          return TimerPage(context);
-        },
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: Center(child: TimerPage(context)),
     );
   }
 }

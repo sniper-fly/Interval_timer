@@ -10,16 +10,19 @@ class TimerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Text(Provider.of<Controller>(context).timer.toString()),
-        IconButton(
-          icon: Icon(Icons.play_arrow),
-          onPressed: () {
-            Provider.of<Controller>(context, listen: false).timeDecrement();
-          },
-        )
-      ],
+    return Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(Provider.of<Controller>(context).currentTimer.toString(), style: TextStyle(fontSize: 20.0),),
+          IconButton(
+            icon: Icon(Icons.play_arrow),
+            onPressed: () {
+              Provider.of<Controller>(context, listen: false).startTimer();
+            },
+          )
+        ],
+      ),
     );
   }
 }
