@@ -1,70 +1,96 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 
-class Controller extends ChangeNotifier {
-  List<String> notes = [];
-  int currentTimer;
+enum TimerState {
+  outOfProcess,
+  inWarmingUp,
+  inMainInterval,
+  inCoolingDown,
+  stopped,
+}
 
-  void increment(String arg) {
-    notes.add(arg);
-    notifyListeners();
+class Controller extends ChangeNotifier {
+  int currentTimer;
+  int setNumber = 3;
+  int currentSetNumber;
+  int warmUpTime = 1;
+  int coolDownTime = 1;
+  List<int> mainIntervals = [3, 4];
+  TimerState state = TimerState.outOfProcess;
+  bool shouldStop = false;
+
+  void onPressed() {
+    switch (state){
+      case TimerState.outOfProcess:
+        startTimer();
+        break;
+      case TimerState.inWarmingUp:
+        restartWarmUp(currentTimer);
+        break;
+      case TimerState.inMainInterval:
+        restartMainInterval(currentTimer)
+        break;
+      case TimerState.inCoolingDown:
+        // TODO: Handle this case.
+        break;
+      case TimerState.stopped:
+        // TODO: Handle this case.
+        break;
+    }
   }
 
-//  void timeDecrement() async {
-//    while (timer > 0) {
-//      await Future.delayed(Duration(seconds: 1));
-//      timer--;
-//      notifyListeners();
-//    }
-//  }
-
-  Future<void> timer(int time) async {
+  Future<void> timer(int time, TimerState newState) async {
+    state = newState;
     currentTimer = time;
     notifyListeners();
-    while (currentTimer > 0) {
-      await Future.delayed(Duration(milliseconds: 100));
+    while (currentTimer > 0 && !shouldStop) {
+      await Future.delayed(Duration(seconds: 1));
       currentTimer--;
       notifyListeners();
     }
   }
 
-  //3
-  //while (i < n) {
-  //30
-  //5
-  //20
-  //5
-  //}
-  //10
-
-
-//  List<int> intervals = [warmUpTime, 30, 5, coolDownTime];
-  int setNumber = 3;
-  int warmUpTime = 3;
-  int coolDownTime = 15;
-  List<int> mainIntervals = [10, 5];
-
-  List<int> createIntervalList(int warmUpTime, List<int> mainIntervals, int coolDownTime) {
-    List<int> intervals = [];
-    intervals.add(warmUpTime);
-    for (int n in mainIntervals) {
-      intervals.add(n);
-    }
-    intervals.add(coolDownTime);
-    return (intervals);
-  }
-
   void startTimer() async {
-    List<int> intervals = createIntervalList(warmUpTime, mainIntervals, coolDownTime);
-
-    await timer(intervals[0]);
+    await timer(warmUpTime, TimerState.inWarmingUp);
     for (int i = 0; i < setNumber; i++) {
-      for (int j = 1; j < intervals.length - 2; j++) {
-        await timer(intervals[j]);
+      currentSetNumber = i;
+      for (var item in mainIntervals) {
+        await timer(item, TimerState.inMainInterval);
       }
     }
-    await timer(intervals[intervals.length - 1]);
+    await timer(coolDownTime, TimerState.inCoolingDown);
+    state = TimerState.outOfProcess;
+    notifyListeners();
+  }
+
+  void stopTimer() async {
+    shouldStop = true;
+
+  }
+
+  void restartWarmUp(int time) async {
+    await timer(time, TimerState.inWarmingUp);
+    for (int i = 0; i < setNumber; i++) {
+      currentSetNumber = i;
+      for (var item in mainIntervals) {
+        await timer(item, TimerState.inMainInterval);
+      }
+    }
+    await timer(coolDownTime, TimerState.inCoolingDown);
+    state = TimerState.outOfProcess;
+    notifyListeners();
+  }
+
+  void restartMainInterval(int time) async {
+    for (int i = currentSetNumber; i < setNumber; i++) {
+      currentSetNumber = i;
+      for (var item in mainIntervals) {
+        await timer(item, TimerState.inMainInterval);
+      }
+    }
+    await timer(coolDownTime, TimerState.inCoolingDown);
+    state = TimerState.outOfProcess;
+    notifyListeners();
   }
 }
